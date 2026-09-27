@@ -74,7 +74,7 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
   submitBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Creating Account...`;
 
   try {
-    const res = await fetch('/api/auth/register', {
+    const res = await fetch('/api/admin/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ fullName, username, password })
