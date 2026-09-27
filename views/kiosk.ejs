@@ -1,0 +1,111 @@
+<div class="max-w-3xl mx-auto space-y-8">
+  
+  <!-- Hero Heading -->
+  <div class="text-center space-y-3">
+    <span class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-delle-teal-light text-delle-teal font-semibold text-xs border border-delle-teal/10">
+      <i class="fa-solid fa-bolt text-delle-gold"></i>
+      <span>Fast Walk-In Print Service</span>
+    </span>
+    <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">Upload & Preview Your Print Files</h1>
+    <p class="text-slate-500 text-sm max-w-lg mx-auto">No account required. Upload your document, verify the preview below, and generate your print ticket code.</p>
+  </div>
+
+  <!-- UPLOAD & PREVIEW CARD -->
+  <div id="uploadCard" class="bg-white border border-slate-200 rounded-3xl p-8 shadow-sm space-y-6">
+    
+    <!-- Drag & Drop Zone -->
+    <div id="dropZone" class="border-2 border-dashed border-slate-200 hover:border-delle-teal bg-slate-50/50 hover:bg-delle-teal-light/50 rounded-2xl p-10 text-center transition-all cursor-pointer group flex flex-col items-center justify-center min-h-[220px]">
+      <input type="file" id="fileInput" class="hidden" accept=".pdf,.docx,.xlsx">
+      
+      <div id="promptContent" class="space-y-4">
+        <div class="w-16 h-16 bg-delle-gold-light text-delle-gold rounded-2xl flex items-center justify-center mx-auto text-2xl group-hover:scale-110 transition-transform">
+          <i class="fa-solid fa-file-arrow-up"></i>
+        </div>
+        <div>
+          <p class="text-base font-bold text-slate-800">Click or drag file to upload</p>
+          <p class="text-xs text-slate-400 mt-1">Supports <span class="font-semibold text-delle-teal">PDF, DOCX, XLSX</span> (Max 50MB)</p>
+        </div>
+      </div>
+
+      <!-- Selected File & Quick Stats -->
+      <div id="fileInfo" class="hidden space-y-3 w-full max-w-md">
+        <div id="fileIcon" class="text-4xl text-delle-teal"></div>
+        <div>
+          <p id="fileName" class="font-bold text-slate-800 text-sm truncate max-w-xs mx-auto"></p>
+          <p id="fileSize" class="text-xs text-slate-400 mt-0.5"></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- DOCUMENT PREVIEW CONTAINER (Hidden until file selected) -->
+    <div id="previewContainer" class="hidden space-y-3 border-t border-slate-100 pt-6">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+          <i class="fa-solid fa-eye text-delle-teal"></i>
+          <span>Document Preview</span>
+        </span>
+        <button id="changeFileBtn" onclick="resetFileSelection()" class="text-xs font-bold text-red-500 hover:underline">
+          Change File
+        </button>
+      </div>
+
+      <!-- Preview Frame / Placeholder -->
+      <div class="border border-slate-200 rounded-2xl overflow-hidden bg-slate-100 min-h-[300px] flex items-center justify-center relative">
+        
+        <!-- PDF Inline Viewer -->
+        <iframe id="pdfPreviewFrame" class="hidden w-full h-[400px]" frameborder="0"></iframe>
+
+        <!-- Word/Excel Metadata Preview Placeholder -->
+        <div id="docPlaceholder" class="hidden text-center p-8 space-y-3">
+          <div id="docTypeBadge" class="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl mx-auto"></div>
+          <div>
+            <p id="docNameDisplay" class="font-bold text-slate-800 text-sm max-w-xs mx-auto truncate"></p>
+            <p class="text-xs text-slate-500 mt-1">Document successfully attached and ready for processing.</p>
+          </div>
+          <span class="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-semibold">
+            <i class="fa-solid fa-circle-check"></i>
+            <span>Verified for Printing</span>
+          </span>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Submit Button -->
+    <button id="uploadBtn" disabled onclick="submitUpload()" class="w-full py-4 bg-delle-teal hover:bg-delle-teal-dark disabled:bg-slate-100 disabled:text-slate-400 text-white font-bold rounded-2xl shadow-lg shadow-delle-teal/10 transition-all flex items-center justify-center space-x-2 text-base">
+      <i class="fa-solid fa-paper-plane text-delle-gold"></i>
+      <span>Generate Print Queue Code</span>
+    </button>
+  </div>
+
+  <!-- SUCCESS TICKET CARD -->
+  <div id="successCard" class="hidden bg-white border border-slate-200 rounded-3xl p-8 shadow-md text-center space-y-6">
+    <div class="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-2xl">
+      <i class="fa-solid fa-check"></i>
+    </div>
+
+    <div>
+      <p class="text-xs font-bold uppercase tracking-widest text-slate-400">Your Queue Reference</p>
+      <div id="ticketCode" class="text-5xl font-black text-delle-teal tracking-wider my-2 font-mono"></div>
+      <p class="text-xs text-slate-500">Show this reference code to the operator at the station counter.</p>
+    </div>
+
+    <div class="grid grid-cols-2 gap-4 max-w-sm mx-auto bg-delle-teal-light p-4 rounded-2xl border border-delle-teal/10 text-left">
+      <div>
+        <p class="text-xs text-slate-400">Document</p>
+        <p id="resFileName" class="text-xs font-bold text-slate-800 truncate"></p>
+      </div>
+      <div>
+        <p class="text-xs text-slate-400">Detected Pages</p>
+        <p id="resPageCount" class="text-xs font-bold text-delle-teal"></p>
+      </div>
+    </div>
+
+    <button onclick="window.location.reload()" class="px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl transition">
+      Upload Another Document
+    </button>
+  </div>
+
+</div>
+
+<script src="/js/kiosk.js"></script>

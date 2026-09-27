@@ -1,0 +1,174 @@
+<div class="space-y-6">
+
+  <!-- TOP BAR / HEADER -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
+    <div class="flex items-center space-x-4">
+      <div class="w-12 h-12 bg-delle-teal-light text-delle-teal rounded-2xl flex items-center justify-center text-xl font-bold">
+        <i class="fa-solid fa-user-shield"></i>
+      </div>
+      <div>
+        <h1 class="text-xl font-extrabold text-slate-900">Print Queue Dashboard</h1>
+        <p class="text-xs text-slate-500">
+          Logged in as <span class="font-bold text-slate-800"><%= admin.fullName || admin.username %></span>
+        </p>
+      </div>
+    </div>
+
+    <div class="flex items-center space-x-3">
+      <button onclick="fetchQueueData()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl transition flex items-center gap-1.5">
+        <i class="fa-solid fa-rotate"></i>
+        <span>Refresh Queue</span>
+      </button>
+
+      <a href="/logout" class="px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 font-semibold text-xs rounded-xl transition flex items-center gap-1.5 border border-red-100">
+        <i class="fa-solid fa-right-from-bracket"></i>
+        <span>Logout</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- STATS OVERVIEW -->
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+      <div>
+        <p class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Pending Orders</p>
+        <p id="statPending" class="text-2xl font-black text-delle-teal mt-1">0</p>
+      </div>
+      <div class="w-10 h-10 bg-delle-teal-light text-delle-teal rounded-xl flex items-center justify-center text-lg">
+        <i class="fa-solid fa-clock"></i>
+      </div>
+    </div>
+
+    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+      <div>
+        <p class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Completed Today</p>
+        <p id="statCompleted" class="text-2xl font-black text-emerald-600 mt-1">0</p>
+      </div>
+      <div class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-lg">
+        <i class="fa-solid fa-circle-check"></i>
+      </div>
+    </div>
+
+    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+      <div>
+        <p class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Total Pages Printed</p>
+        <p id="statPages" class="text-2xl font-black text-delle-gold mt-1">0</p>
+      </div>
+      <div class="w-10 h-10 bg-delle-gold-light text-delle-gold rounded-xl flex items-center justify-center text-lg">
+        <i class="fa-solid fa-print"></i>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRINT QUEUE TABLE CARD -->
+  <div class="bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden">
+    
+    <!-- Table Header with Queue Controls & Search Toolbar -->
+    <div class="p-6 border-b border-slate-100 flex flex-col gap-4">
+      
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <!-- Queue Filter Tabs -->
+        <div class="flex items-center bg-slate-100 p-1 rounded-2xl w-full sm:w-auto">
+          <button id="tabUnhandled" onclick="switchQueueTab('unhandled')" class="flex-1 sm:flex-none px-5 py-2.5 rounded-xl font-bold text-xs transition bg-delle-teal text-white shadow-sm flex items-center justify-center gap-2">
+            <i class="fa-solid fa-clock"></i>
+            <span>Unhandled Queue</span>
+          </button>
+
+          <button id="tabHandled" onclick="switchQueueTab('handled')" class="flex-1 sm:flex-none px-5 py-2.5 rounded-xl font-bold text-xs transition text-slate-500 hover:text-slate-800 flex items-center justify-center gap-2">
+            <i class="fa-solid fa-circle-check"></i>
+            <span>Handled / Done</span>
+          </button>
+
+          <button id="tabAll" onclick="switchQueueTab('all')" class="flex-1 sm:flex-none px-5 py-2.5 rounded-xl font-bold text-xs transition text-slate-500 hover:text-slate-800 flex items-center justify-center gap-2">
+            <i class="fa-solid fa-list"></i>
+            <span>All Statuses</span>
+          </button>
+        </div>
+
+        <!-- Active Item Count Badge -->
+        <span id="queueCountBadge" class="text-xs font-semibold px-3 py-1.5 rounded-full bg-slate-100 text-slate-600 self-start sm:self-auto">
+          0 Jobs
+        </span>
+      </div>
+
+      <!-- FILTER & SEARCH TOOLBAR -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 pt-2">
+        <!-- Search Field -->
+        <div class="lg:col-span-3 relative">
+          <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+          <input type="text" id="searchInput" oninput="applyFilters()" placeholder="Search Ref Code or Document Name..." class="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:border-delle-teal focus:bg-white transition" />
+        </div>
+
+        <!-- Single Date / Date Range Mode Selector -->
+        <div class="lg:col-span-2">
+          <select id="dateMode" onchange="toggleDateInputs()" class="w-full py-2 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:border-delle-teal">
+            <option value="today" selected>Today Only</option>
+            <option value="single">Specific Date</option>
+            <option value="range">Date Range</option>
+            <option value="all">All Dates</option>
+          </select>
+        </div>
+
+        <!-- Single Date Picker -->
+        <div id="singleDateWrapper" class="lg:col-span-2 hidden">
+          <input type="date" id="singleDateInput" onchange="applyFilters()" class="w-full py-2 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-700 focus:outline-none focus:border-delle-teal" />
+        </div>
+
+        <!-- Range Pickers -->
+        <div id="rangeDateWrapper" class="lg:col-span-3 hidden flex items-center gap-2">
+          <input type="date" id="startDateInput" onchange="applyFilters()" class="w-full py-2 px-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-700 focus:outline-none focus:border-delle-teal" />
+          <span class="text-xs text-slate-400 font-bold">to</span>
+          <input type="date" id="endDateInput" onchange="applyFilters()" class="w-full py-2 px-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-700 focus:outline-none focus:border-delle-teal" />
+        </div>
+
+        <!-- Sort Select -->
+        <div class="lg:col-span-3">
+          <select id="sortByInput" onchange="applyFilters()" class="w-full py-2 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:border-delle-teal">
+            <option value="newest">Newest First</option>
+            <option value="oldest">Oldest First</option>
+            <option value="ref">Ref Code (A-Z)</option>
+            <option value="name">Document Name (A-Z)</option>
+            <option value="pages">Pages (High to Low)</option>
+          </select>
+        </div>
+
+        <!-- Clear Filters Button -->
+        <div class="lg:col-span-2 flex items-center">
+          <button type="button" onclick="clearFilters()" class="w-full py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold text-xs rounded-xl transition flex items-center justify-center gap-1.5 border border-slate-200">
+            <i class="fa-solid fa-xmark"></i>
+            <span>Clear Filters</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Data Table -->
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="bg-slate-50 border-b border-slate-100 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+            <th class="py-3.5 px-6">Reference Code</th>
+            <th class="py-3.5 px-6">Document Name</th>
+            <th class="py-3.5 px-6">Pages</th>
+            <th class="py-3.5 px-6">Submitted</th>
+            <th class="py-3.5 px-6">Status</th>
+            <th class="py-3.5 px-6 text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="queueTableBody" class="divide-y divide-slate-100 text-xs text-slate-700">
+          <tr>
+            <td colspan="6" class="text-center py-10 text-slate-400 font-medium">
+              <i class="fa-solid fa-spinner fa-spin mr-2 text-delle-teal"></i> Loading queue items...
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- Client-side Controller Script -->
+<script src="/js/admin.js"></script>
