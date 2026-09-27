@@ -66,8 +66,8 @@
 document.getElementById('registerForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const submitBtn = document.getElementById('submitBtn');
-  const fullName = document.getElementById('fullName').value;
-  const username = document.getElementById('username').value;
+  const name = document.getElementById('fullName').value;
+  const email = document.getElementById('username').value;
   const password = document.getElementById('password').value;
 
   submitBtn.disabled = true;
@@ -77,7 +77,7 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
     const res = await fetch('/api/admin/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ fullName, username, password })
+      body: JSON.stringify({ name, email, password })
     });
 
     const data = await res.json();
