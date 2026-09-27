@@ -5,6 +5,7 @@ const cookieParser = require('cookie-parser');
 const expressLayouts = require('express-ejs-layouts');
 const morgan = require('morgan');
 require('dotenv').config();
+require('./utils/backup');
 
 const { sequelize } = require('./models');
 const { authenticateAdmin } = require('./middleware/auth'); // Adjust path to your auth middleware
