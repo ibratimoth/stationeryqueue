@@ -5,6 +5,7 @@ const dropZone = document.getElementById('dropZone');
 const fileInput = document.getElementById('fileInput');
 const uploadBtn = document.getElementById('uploadBtn');
 
+// Exact original listeners
 dropZone.addEventListener('click', () => fileInput.click());
 
 fileInput.addEventListener('change', (e) => {
@@ -26,6 +27,17 @@ dropZone.addEventListener('drop', (e) => {
   if (e.dataTransfer.files.length) handleFileSelect(e.dataTransfer.files[0]);
 });
 
+function togglePageInput() {
+  const selectedOption = document.querySelector('input[name="printRangeType"]:checked').value;
+  const customContainer = document.getElementById('customPageInputContainer');
+  
+  if (selectedOption === 'custom') {
+    customContainer.classList.remove('hidden');
+  } else {
+    customContainer.classList.add('hidden');
+  }
+}
+
 function handleFileSelect(file) {
   if (!file) return;
   selectedFile = file;
@@ -39,6 +51,7 @@ function handleFileSelect(file) {
   document.getElementById('promptContent').classList.add('hidden');
   document.getElementById('fileInfo').classList.remove('hidden');
   document.getElementById('previewContainer').classList.remove('hidden');
+  document.getElementById('pageSelectionSection').classList.remove('hidden');
 
   document.getElementById('fileName').innerText = file.name;
   document.getElementById('fileSize').innerText = `${(file.size / (1024 * 1024)).toFixed(2)} MB`;
@@ -92,6 +105,7 @@ function resetFileSelection() {
   document.getElementById('promptContent').classList.remove('hidden');
   document.getElementById('fileInfo').classList.add('hidden');
   document.getElementById('previewContainer').classList.add('hidden');
+  document.getElementById('pageSelectionSection').classList.add('hidden');
   document.getElementById('pdfPreviewFrame').src = '';
   
   uploadBtn.disabled = true;
@@ -100,8 +114,20 @@ function resetFileSelection() {
 async function submitUpload() {
   if (!selectedFile) return;
 
+  const printOption = document.querySelector('input[name="printRangeType"]:checked').value;
+  const customPageInput = document.getElementById('customPageCount').value;
+
+  if (printOption === 'custom' && (!customPageInput || parseInt(customPageInput, 10) <= 0)) {
+    alert('Please enter a valid page count.');
+    return;
+  }
+
   const formData = new FormData();
   formData.append('document', selectedFile);
+  formData.append('printOption', printOption);
+  if (printOption === 'custom') {
+    formData.append('customPageCount', customPageInput);
+  }
 
   uploadBtn.disabled = true;
   uploadBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Processing...`;
@@ -129,5 +155,6 @@ async function submitUpload() {
   } catch (err) {
     alert('Connection error. Please try again.');
     uploadBtn.disabled = false;
+    uploadBtn.innerHTML = `<i class="fa-solid fa-paper-plane text-delle-gold"></i><span>Generate Print Queue Code</span>`;
   }
 }

@@ -2,6 +2,7 @@ const jwt = require('jsonwebtoken');
 const path = require('path');
 const fs = require('fs');
 const { Op } = require('sequelize');
+const os = require('os');
 const { User, PrintJob, sequelize } = require('../models');
 
 // Admin Registration
@@ -53,8 +54,8 @@ exports.login = async (req, res) => {
     }
 
     const token = jwt.sign(
-      { id: user.id, role: user.role }, 
-      process.env.JWT_SECRET, 
+      { id: user.id, role: user.role },
+      process.env.JWT_SECRET,
       { expiresIn: '12h' }
     );
 
@@ -200,3 +201,23 @@ exports.getAnalytics = async (req, res) => {
     return res.status(500).json({ success: false, message: error.message });
   }
 };
+
+exports.getIpaddress = async (req, res) => {
+  try {
+    const interfaces = os.networkInterfaces();
+    let localIp = '127.0.0.1';
+
+    for (const name of Object.keys(interfaces)) {
+      for (const iface of interfaces[name]) {
+        if (iface.family === 'IPv4' && !iface.internal) {
+          localIp = iface.address;
+          break;
+        }
+      }
+    }
+
+    return res.json({ ip: localIp });
+  } catch (error) {
+    return res.status(500).send('Error getting ip address');
+  }
+}

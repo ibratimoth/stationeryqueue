@@ -9,10 +9,24 @@ exports.uploadDocument = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Please select a file to upload.' });
     }
 
+    const { printOption, customPageCount } = req.body;
     const rawExt = path.extname(req.file.originalname).toLowerCase().replace('.', '');
     const referenceNumber = await generateReferenceNumber();
+    
+    // 1. Detect actual total page count from file
     const detectedPageCount = await calculatePageCount(req.file.path, rawExt);
 
+    // 2. Determine final pageCount based on user selection
+    let finalPageCount = detectedPageCount;
+
+    if (printOption === 'custom' && customPageCount) {
+      const parsedCustomPages = parseInt(customPageCount, 10);
+      if (!isNaN(parsedCustomPages) && parsedCustomPages > 0) {
+        finalPageCount = parsedCustomPages;
+      }
+    }
+
+    // 3. Save to database
     const printJob = await PrintJob.create({
       referenceNumber,
       originalFileName: req.file.originalname,
@@ -20,7 +34,7 @@ exports.uploadDocument = async (req, res) => {
       filePath: req.file.path,
       fileType: rawExt,
       fileSize: req.file.size,
-      pageCount: detectedPageCount,
+      pageCount: finalPageCount,
       status: 'unhandled'
     });
 

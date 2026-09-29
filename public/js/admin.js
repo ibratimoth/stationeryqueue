@@ -1,5 +1,6 @@
 let currentTab = 'unhandled';
 let rawJobsCache = []; // Holds fetched data from backend
+let qrCodeInstance = null;
 
 document.addEventListener('DOMContentLoaded', () => {
   // Set default single date input value to today's local date YYYY-MM-DD
@@ -285,4 +286,109 @@ async function updateJobStatus(id, status) {
   } catch (error) {
     alert('Server connection error while updating job.');
   }
+}
+
+/**
+ * Fetch LAN IP from Express backend or fall back to window hostname
+ */
+async function getKioskUrl() {
+  let ip = window.location.hostname;
+
+  // Avoid using localhost or loopback IPs
+  if (ip === 'localhost' || ip === '127.0.0.1') {
+    try {
+      const res = await fetch('/api/admin/server-ip');
+      const data = await res.json();
+      if (data && data.ip) {
+        ip = data.ip;
+      }
+    } catch (e) {
+      console.warn('Could not fetch server LAN IP from backend, using window hostname.');
+    }
+  }
+
+  return `http://${ip}:3003`;
+}
+
+/**
+ * Open QR Code Modal & Generate Printable Visuals
+ */
+async function openQrModal() {
+  const modal = document.getElementById('qrModal');
+  const qrContainer = document.getElementById('qrcode');
+  const urlDisplay = document.getElementById('qrUrlText');
+
+  const kioskUrl = await getKioskUrl();
+  urlDisplay.innerText = kioskUrl;
+
+  qrContainer.innerHTML = '';
+  
+  qrCodeInstance = new QRCode(qrContainer, {
+    text: kioskUrl,
+    width: 200,
+    height: 200,
+    colorDark: "#0f172a",
+    colorLight: "#ffffff",
+    correctLevel: QRCode.CorrectLevel.H
+  });
+
+  modal.classList.remove('hidden');
+}
+
+/**
+ * Close QR Modal
+ */
+function closeQrModal() {
+  document.getElementById('qrModal').classList.add('hidden');
+}
+
+/**
+ * Print A4 Poster Format
+ */
+function printA4Poster() {
+  const posterHtml = document.getElementById('a4Poster').outerHTML;
+  const printWindow = window.open('', '_blank', 'width=800,height=1000');
+
+  printWindow.document.write(`
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <title>Print Station Kiosk QR Code</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <style>
+          @page { size: A4 portrait; margin: 0; }
+          body { 
+            margin: 0; 
+            padding: 0; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            min-height: 100vh;
+            background-color: #ffffff;
+            font-family: system-ui, -apple-system, sans-serif;
+          }
+          .a4-container {
+            width: 210mm;
+            height: 297mm;
+            padding: 25mm 20mm;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            box-sizing: border-box;
+            text-align: center;
+          }
+        </style>
+      </head>
+      <body onload="window.print(); window.close();">
+        <div class="a4-container">
+          <div class="w-full max-w-xl mx-auto border-4 border-slate-900 rounded-3xl p-12 space-y-10 my-auto shadow-none">
+            ${posterHtml}
+          </div>
+        </div>
+      </body>
+    </html>
+  `);
+
+  printWindow.document.close();
 }
